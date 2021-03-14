@@ -10,6 +10,7 @@ autocmd FileType dired nnoremap <silent> t :call DiredTouch(g:DiredFiles, expand
 autocmd FileType dired nnoremap <silent> e :call DiredEdit(g:DiredFiles, 0, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
+autocmd FileType dired nnoremap <silent> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 
 function DiredDelete(files, sid)
 	let g:DiredLine = line('.')
@@ -84,6 +85,11 @@ function DiredEdit(files, splitted, sid)
 		silent execute "vsplit " . filename
 	endif
 	set modifiable
+endfunction
+
+function DiredGitInit(files, sid)
+	silent !git init
+	silent call DiredMain(0, a:sid)
 endfunction
 
 function DiredMain(inNew, sid)
