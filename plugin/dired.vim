@@ -1,10 +1,5 @@
 " Maintainer:   Kacper Kocot <kocotian@kocotian.pl>
 
-if exists('g:autoloaded_dired')
-  finish
-endif
-let g:autoloaded_dired = 1
-
 autocmd FileType dired nnoremap <silent> dd :call DiredDelete(g:DiredFiles, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> dr :call DiredDeleteRecur(g:DiredFiles, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> <Enter> :call DiredChdir(g:DiredFiles, expand('%:e'))<CR>
