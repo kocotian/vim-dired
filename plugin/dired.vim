@@ -11,6 +11,7 @@ autocmd FileType dired nnoremap <silent> e :call DiredEdit(g:DiredFiles, 0, expa
 autocmd FileType dired nnoremap <silent> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
 autocmd FileType dired nnoremap <silent> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
+autocmd FileType dired nnoremap <silent> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 
 function DiredDelete(files, sid)
 	let g:DiredLine = line('.')
@@ -89,6 +90,14 @@ endfunction
 
 function DiredGitInit(files, sid)
 	silent !git init
+	silent call DiredMain(0, a:sid)
+endfunction
+
+function DiredInteractiveChdir(files, sid)
+	let g:DiredLine = line('.')
+	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	let newfilename = input("cd ", newfilename)
+	silent execute "chdir " . newfilename
 	silent call DiredMain(0, a:sid)
 endfunction
 
