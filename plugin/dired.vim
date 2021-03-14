@@ -78,6 +78,7 @@ function DiredEdit(files, splitted, sid)
 	elseif a:splitted == 2
 		silent execute "vsplit " . filename
 	endif
+	set modifiable
 endfunction
 
 function DiredMain(inNew, sid)
@@ -93,9 +94,6 @@ function DiredMain(inNew, sid)
 	silent 1d
 	silent execute "normal " . g:DiredLine . "G"
 	set nomodifiable
-	set nowrap
-	set nonumber
-	set norelativenumber
 	set nomodified
 endfunction
 
