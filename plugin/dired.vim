@@ -36,8 +36,13 @@ function DiredChdir(files, sid)
 		let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
 		silent execute "chdir " . filename
 		silent call DiredMain(0, a:sid)
+	elseif substitute(a:files[g:DiredLine - 1], '^\s*', '', '')[0] == 'l'
+		let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+		let filename = substitute(filename, '.*-> ', '', '')
+		silent execute "chdir " . filename
+		silent call DiredMain(0, a:sid)
 	else
-		silent call DiredEdit(a:files, 0, a:sid)
+		silent call DiredEdit(a:files, 2, a:sid)
 	endif
 endfunction
 
@@ -102,4 +107,4 @@ let g:DiredLine = 1
 autocmd BufRead,BufNewFile dired:///* set filetype=dired
 
 command DiredHere silent call DiredMain(0, localtime() % 100000)
-command Dired silent call DiredMain(0, localtime() % 100000)
+command Dired silent call DiredMain(1, localtime() % 100000)
