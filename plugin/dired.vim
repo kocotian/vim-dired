@@ -1,18 +1,5 @@
 " Maintainer:   Kacper Kocot <kocotian@kocotian.pl>
 
-autocmd FileType dired nnoremap <silent> dd :call DiredDelete(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> dr :call DiredDeleteRecur(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> <Enter> :call DiredChdir(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> r :call DiredRename(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> o :call DiredNewfile(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> m :call DiredMkdir(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> t :call DiredTouch(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> e :call DiredEdit(g:DiredFiles, 0, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
-autocmd FileType dired nnoremap <silent> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
-
 function DiredDelete(files, sid)
 	let g:DiredLine = line('.')
 	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
@@ -115,6 +102,19 @@ function DiredMain(inNew, sid)
 	silent execute "normal " . g:DiredLine . "G"
 	set nomodifiable
 	set nomodified
+
+	nnoremap <silent><buffer> dd :call DiredDelete(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> dr :call DiredDeleteRecur(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> <Enter> :call DiredChdir(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> r :call DiredRename(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> o :call DiredNewfile(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> m :call DiredMkdir(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> t :call DiredTouch(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> e :call DiredEdit(g:DiredFiles, 0, expand('%:e'))<CR>
+	nnoremap <silent><buffer> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
+	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
+	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 endfunction
 
 let g:DiredLine = 1
