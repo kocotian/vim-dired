@@ -88,6 +88,13 @@ function DiredInteractiveChdir(files, sid)
 	silent call DiredMain(0, a:sid)
 endfunction
 
+function DiredOpenWith(files, sid)
+	let g:DiredLine = line('.')
+	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	let openwith = input("Open with: ")
+	silent execute "!" . openwith . " '" . filename . "' &"
+endfunction
+
 function DiredMain(inNew, sid)
 	if a:inNew == 1
 		new
@@ -115,6 +122,7 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
 	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> O :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
 endfunction
 
 let g:DiredLine = 1
