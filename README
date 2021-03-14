@@ -1,0 +1,5 @@
+vim-dired
+=========
+
+Simple dired-like directory plugin for vim
+This is my first bigger code wrote in vimscript, so expect bugs
