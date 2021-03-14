@@ -96,7 +96,7 @@ endfunction
 function DiredInteractiveChdir(files, sid)
 	let g:DiredLine = line('.')
 	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
-	let newfilename = input("cd ", newfilename)
+	let newfilename = input("cd ", filename)
 	silent execute "chdir " . newfilename
 	silent call DiredMain(0, a:sid)
 endfunction
