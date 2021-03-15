@@ -69,6 +69,7 @@ endfunction
 
 function DiredChdir(files, sid)
 	let g:DiredLine = line('.')
+	call insert(g:DiredHistory, getcwd(), len(g:DiredHistory))
 	if substitute(a:files[g:DiredLine - 1], '^\s*', '', '')[0] == 'd'
 		let filename = DiredGetFilename(a:files, a:sid, 0)
 		silent execute "chdir " . filename
@@ -121,11 +122,6 @@ function DiredEdit(files, splitted, sid)
 	set modifiable
 endfunction
 
-function DiredGitInit(files, sid)
-	silent !git init
-	silent call DiredMain(0, a:sid)
-endfunction
-
 function DiredInteractiveChdir(files, sid)
 	let filename = DiredGetFilename(a:files, a:sid, 0)
 	let newfilename = input("cd ")
@@ -165,6 +161,20 @@ function DiredChangeGroup(files, sid)
 	silent call DiredMain(0, a:sid)
 endfunction
 
+" Other smaller functions
+
+function DiredInfo(files, sid)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	execute "!stat '" . filename . "'"
+endfunction
+
+function DiredGitInit(files, sid)
+	silent !git init
+	silent call DiredMain(0, a:sid)
+endfunction
+
+" Main function
+
 function DiredMain(inNew, sid)
 	if a:inNew == 1
 		new
@@ -192,6 +202,8 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
 
+	nnoremap <silent><buffer> i :call DiredInfo(g:DiredFiles, expand('%:e'))<CR>
+
 	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> O :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
@@ -204,6 +216,18 @@ function DiredMain(inNew, sid)
 endfunction
 
 let g:DiredLine = 1
+let g:DiredHistory = []
+
+function DiredHistoryBack(files, sid)
+	if len(g:DiredHistory)
+		let dir = g:DiredHistory[-1]
+		silent execute "chdir " . dir
+		silent call remove(g:DiredHistory, -1)
+		silent call DiredMain(0, a:sid)
+	endif
+endfunction
+
+nnoremap <silent> <Backspace> :call DiredHistoryBack(g:DiredFiles, expand('%:e'))<CR>
 
 autocmd BufRead,BufNewFile dired:///* set filetype=dired
 
