@@ -173,6 +173,20 @@ function DiredGitInit(files, sid)
 	silent call DiredMain(0, a:sid)
 endfunction
 
+function DiredRefresh(files, sid)
+	let g:DiredLine = line('.')
+	silent call DiredMain(0, a:sid)
+endfunction
+
+function DiredHistoryBack(files, sid)
+	if len(g:DiredHistory)
+		let dir = g:DiredHistory[-1]
+		silent execute "chdir " . dir
+		silent call remove(g:DiredHistory, -1)
+		silent call DiredMain(0, a:sid)
+	endif
+endfunction
+
 " Main function
 
 function DiredMain(inNew, sid)
@@ -202,12 +216,12 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
 
+	" utility functions
 	nnoremap <silent><buffer> i :call DiredInfo(g:DiredFiles, expand('%:e'))<CR>
-
 	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> O :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
-	nnoremap <silent><buffer> R :call DiredMain(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> R :call DiredRefresh(g:DiredFiles, expand('%:e'))<CR>
 
 	" changing attributes
 	nnoremap <silent><buffer> cp :call DiredChangePermissions(g:DiredFiles, expand('%:e'))<CR>
@@ -217,15 +231,6 @@ endfunction
 
 let g:DiredLine = 1
 let g:DiredHistory = []
-
-function DiredHistoryBack(files, sid)
-	if len(g:DiredHistory)
-		let dir = g:DiredHistory[-1]
-		silent execute "chdir " . dir
-		silent call remove(g:DiredHistory, -1)
-		silent call DiredMain(0, a:sid)
-	endif
-endfunction
 
 nnoremap <silent> <Backspace> :call DiredHistoryBack(g:DiredFiles, expand('%:e'))<CR>
 
