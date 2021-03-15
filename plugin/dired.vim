@@ -1,17 +1,65 @@
 " Maintainer:   Kacper Kocot <kocotian@kocotian.pl>
 
-function DiredDelete(files, sid)
+" Dividing Lines
+
+function DiredGetLine(files, sid)
 	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	return a:files[g:DiredLine - 1]
+endfunction
+
+function DiredGetPermissions(files, sid)
+	let line = DiredGetLine(a:files, a:sid)
+	let suba = substitute(line, '^\s*.\ze..........*$', '', '')
+	return substitute(suba, '.........\zs.*$', '', '')
+endfunction
+
+function DiredGetNumericPermissions(files, sid)
+	let nperm = DiredGetPermissions(a:files, a:sid)
+	let uperm = (nperm[0] == 'r' ? 4 : 0) + (nperm[1] == 'w' ? 2 : 0) + (nperm[2] == 'x' ? 1 : 0)
+	let gperm = (nperm[3] == 'r' ? 4 : 0) + (nperm[4] == 'w' ? 2 : 0) + (nperm[5] == 'x' ? 1 : 0)
+	let operm = (nperm[6] == 'r' ? 4 : 0) + (nperm[7] == 'w' ? 2 : 0) + (nperm[8] == 'x' ? 1 : 0)
+	return uperm . gperm . operm
+endfunction
+
+function DiredGetUser(files, sid)
+	let line = DiredGetLine(a:files, a:sid)
+	let suba = substitute(line, '^\s*\S\+\s\+\S\+\s\+\ze.*', '', '')
+	return substitute(suba, '\S\+\zs.*$', '', '')
+endfunction
+
+function DiredGetGroup(files, sid)
+	let line = DiredGetLine(a:files, a:sid)
+	let suba = substitute(line, '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\ze.*', '', '')
+	return substitute(suba, '\S\+\zs.*$', '', '')
+endfunction
+
+function DiredGetFilename(files, sid, dereferenceLink)
+	let line = DiredGetLine(a:files, a:sid)
+	let filename = substitute(line, '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+
+	if substitute(line, '^\s*', '', '')[0] == 'l'
+		if a:dereferenceLink == 1
+			return substitute(filename, '.*-> ', '', '')
+		else
+			return substitute(filename, ' ->.*', '', '')
+		endif
+	else
+		return filename
+	endif
+endfunction
+
+" File management
+
+function DiredDelete(files, sid)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
 	silent execute "!rm -f '" . filename . "'>/dev/null"
 	echo filename . " removed"
 	silent call DiredMain(0, a:sid)
 endfunction
 
 function DiredDeleteRecur(files, sid)
-	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
-	let sure = input("Are you sure that you want to delete " . filename . " recursively? ")
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	let sure = input("Are you sure that you want to delete '" . filename . "' recursively? ")
 	if sure[0] == 'y'
 		silent execute "!rm -rf '" . filename . "'>/dev/null"
 		echo filename . " removed recursively"
@@ -22,11 +70,11 @@ endfunction
 function DiredChdir(files, sid)
 	let g:DiredLine = line('.')
 	if substitute(a:files[g:DiredLine - 1], '^\s*', '', '')[0] == 'd'
-		let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+		let filename = DiredGetFilename(a:files, a:sid, 0)
 		silent execute "chdir " . filename
 		silent call DiredMain(0, a:sid)
 	elseif substitute(a:files[g:DiredLine - 1], '^\s*', '', '')[0] == 'l'
-		let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+		let filename = DiredGetFilename(a:files, a:sid, 0)
 		let filename = substitute(filename, '.*-> ', '', '')
 		silent execute "chdir " . filename
 		silent call DiredMain(0, a:sid)
@@ -36,8 +84,7 @@ function DiredChdir(files, sid)
 endfunction
 
 function DiredRename(files, sid)
-	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	let filename = DiredGetFilename(a:files, a:sid, 0)
 	let newfilename = input("Give new file name: ", filename)
 	silent execute "!mv '" . filename . "' '" . newfilename . "'>/dev/null"
 	silent call DiredMain(0, a:sid)
@@ -63,8 +110,7 @@ function DiredNewfile(files, sid)
 endfunction
 
 function DiredEdit(files, splitted, sid)
-	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	let filename = DiredGetFilename(a:files, a:sid, 0)
 	if a:splitted == 0
 		silent execute "edit " . filename
 	elseif a:splitted == 1
@@ -81,18 +127,42 @@ function DiredGitInit(files, sid)
 endfunction
 
 function DiredInteractiveChdir(files, sid)
-	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
-	let newfilename = input("cd ", filename)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	let newfilename = input("cd ")
 	silent execute "chdir " . newfilename
 	silent call DiredMain(0, a:sid)
 endfunction
 
 function DiredOpenWith(files, sid)
-	let g:DiredLine = line('.')
-	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	let filename = DiredGetFilename(a:files, a:sid, 0)
 	let openwith = input("Open with: ")
 	silent execute "!" . openwith . " '" . filename . "' &"
+endfunction
+
+" changing attributes
+
+function DiredChangePermissions(files, sid)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	let permissions = DiredGetNumericPermissions(a:files, a:sid)
+	let newpermissions = input("New permissions: ", permissions)
+	silent execute "!chmod " . newpermissions . " '" . filename . "'"
+	silent call DiredMain(0, a:sid)
+endfunction
+
+function DiredChangeUser(files, sid)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	let user = DiredGetUser(a:files, a:sid)
+	let newuser = input("New user owner: ", user)
+	silent execute "!chown '" . newuser . "': '" . filename . "'"
+	silent call DiredMain(0, a:sid)
+endfunction
+
+function DiredChangeGroup(files, sid)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	let group = DiredGetGroup(a:files, a:sid)
+	let newgroup = input("New group owner: ", group)
+	silent execute "!chown :'" . newgroup . "' '" . filename . "'"
+	silent call DiredMain(0, a:sid)
 endfunction
 
 function DiredMain(inNew, sid)
@@ -110,9 +180,10 @@ function DiredMain(inNew, sid)
 	set nomodifiable
 	set nomodified
 
+	" basic operations
+	nnoremap <silent><buffer> <Enter> :call DiredChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> dd :call DiredDelete(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> dr :call DiredDeleteRecur(g:DiredFiles, expand('%:e'))<CR>
-	nnoremap <silent><buffer> <Enter> :call DiredChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> r :call DiredRename(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> o :call DiredNewfile(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> m :call DiredMkdir(g:DiredFiles, expand('%:e'))<CR>
@@ -120,9 +191,16 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> e :call DiredEdit(g:DiredFiles, 0, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
+
 	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> O :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> R :call DiredMain(g:DiredFiles, expand('%:e'))<CR>
+
+	" changing attributes
+	nnoremap <silent><buffer> cp :call DiredChangePermissions(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> cu :call DiredChangeUser(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> cg :call DiredChangeGroup(g:DiredFiles, expand('%:e'))<CR>
 endfunction
 
 let g:DiredLine = 1
