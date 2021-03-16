@@ -3,13 +3,17 @@
 " Maintainer:	Kacper Kocot <kocotian@kocotian.pl>
 " Last Change:	2021 Mar 14
 
-syn match diredTotalValue	display contained "\s*[0-9]*"
+syn match diredTotalValue	display contained "\s*[0-9A-Z.]*"
 syn match diredTotal		display "^total\s" contains=diredTotalValue
 
 syn match diredDirectory	display "^d.*" contains=diredPermissions,diredDirCount,diredUser,diredGroup,diredSize,diredModifyDate,diredFilename
 syn match diredFifo			display "^p.*" contains=diredPermissions,diredDirCount,diredUser,diredGroup,diredSize,diredModifyDate,diredFilename
 syn match diredLink			display "^l.*" contains=diredPermissions,diredDirCount,diredUser,diredGroup,diredSize,diredModifyDate,diredFilename
 syn match diredFile			display "^-.*" contains=diredPermissions,diredDirCount,diredUser,diredGroup,diredSize,diredModifyDate
+syn match diredInfo			display "^#.*" contains=diredInBuffer
+
+syn match diredInBuffer		display "In buffer:.*" contains=diredBufferContents
+syn match diredBufferContents	display ": .*"
 
 syn match diredPermissions	display contained "^.........." contains=diredPermRead,diredPermWrite,diredPermExecute
 syn match diredPermRead		display contained "r"
@@ -33,6 +37,10 @@ hi def link diredDirectory		Structure
 hi def link diredFifo			Repeat
 hi def link diredLink			String
 hi def link diredFile			Normal
+
+hi def link diredInfo			Comment
+hi def link diredInBuffer		Label
+hi def link diredBufferContents	Normal
 
 hi def link diredPermissions	DiredNoperm
 hi def link diredPermRead		DiredRead

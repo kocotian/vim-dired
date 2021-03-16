@@ -52,8 +52,8 @@ endfunction
 
 function DiredDelete(files, sid)
 	let filename = DiredGetFilename(a:files, a:sid, 0)
-	silent execute "!rm -f '" . filename . "'>/dev/null"
 	echo filename . " removed"
+	silent execute "!rm -f '" . filename . "'>/dev/null"
 	silent call DiredMain(0, a:sid)
 endfunction
 
@@ -61,8 +61,8 @@ function DiredDeleteRecur(files, sid)
 	let filename = DiredGetFilename(a:files, a:sid, 0)
 	let sure = input("Are you sure that you want to delete '" . filename . "' recursively? ")
 	if sure[0] == 'y'
-		silent execute "!rm -rf '" . filename . "'>/dev/null"
 		echo filename . " removed recursively"
+		silent execute "!rm -rf '" . filename . "'>/dev/null"
 	endif
 	silent call DiredMain(0, a:sid)
 endfunction
@@ -93,6 +93,7 @@ endfunction
 
 function DiredMkdir(files, sid)
 	let filename = input("Give directory name: ")
+	echo "Directory " . filename . " created"
 	silent execute "!mkdir -p '" . filename . "'"
 	silent call DiredMain(0, a:sid)
 endfunction
@@ -100,12 +101,14 @@ endfunction
 function DiredTouch(files, sid)
 	let g:DiredLine = line('.')
 	let filename = substitute(a:files[g:DiredLine - 1], '^\s*\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+', '', '')
+	echo filename . " touched"
 	silent execute "!touch '" . filename . "'"
 	silent call DiredMain(0, a:sid)
 endfunction
 
 function DiredNewfile(files, sid)
 	let filename = input("Give filename: ")
+	echo filename . " created"
 	silent execute "!touch '" . filename . "'"
 	silent call DiredMain(0, a:sid)
 endfunction
@@ -121,6 +124,44 @@ function DiredEdit(files, splitted, sid)
 	endif
 	set modifiable
 endfunction
+
+function DiredYankFile(files, sid, append)
+	let filename = DiredGetFilename(a:files, a:sid, 0)
+	if a:append == 0
+		let g:DiredYankBuf = []
+	endif
+	call insert(g:DiredYankBuf, getcwd() . "/" . filename, len(g:DiredYankBuf))
+	silent call DiredMain(0, a:sid)
+	echo filename . " yanked"
+endfunction
+
+function DiredPasteFiles(files, sid, intoFocused)
+	for f in g:DiredYankBuf
+		if a:intoFocused
+			let dir = DiredGetFilename(a:files, a:sid, 0)
+		else
+			let dir = getcwd()
+		endif
+		echo f . " pasted to " . dir
+		silent execute "!cp '" . f . "' '" . dir . "'"
+	endfor
+	silent call DiredMain(0, a:sid)
+endfunction
+
+function DiredMoveFiles(files, sid, intoFocused)
+	for f in g:DiredYankBuf
+		if a:intoFocused
+			let dir = DiredGetFilename(a:files, a:sid, 0)
+		else
+			let dir = getcwd()
+		endif
+		echo f . " moved to " . dir
+		silent execute "!mv '" . f . "' '" . dir . "'"
+	endfor
+	silent call DiredMain(0, a:sid)
+endfunction
+
+" utility functions
 
 function DiredInteractiveChdir(files, sid)
 	let filename = DiredGetFilename(a:files, a:sid, 0)
@@ -196,10 +237,15 @@ function DiredMain(inNew, sid)
 	set modifiable
 	set nomodified
 	silent execute "e dired:///dired." . a:sid
-	let ls = system('ls -la')
+	let ls = system('ls -lah')
 	let g:DiredFiles = split(ls, "\n")
 	silent put =ls
 	silent 1d
+	silent execute "normal G"
+	for f in g:DiredYankBuf
+		let line = "# In buffer: " . f
+		silent put =line
+	endfor
 	silent execute "normal " . g:DiredLine . "G"
 	set nomodifiable
 	set nomodified
@@ -210,17 +256,25 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> dr :call DiredDeleteRecur(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> r :call DiredRename(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> o :call DiredNewfile(g:DiredFiles, expand('%:e'))<CR>
-	nnoremap <silent><buffer> m :call DiredMkdir(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> O :call DiredMkdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> t :call DiredTouch(g:DiredFiles, expand('%:e'))<CR>
+
 	nnoremap <silent><buffer> e :call DiredEdit(g:DiredFiles, 0, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sp :call DiredEdit(g:DiredFiles, 1, expand('%:e'))<CR>
 	nnoremap <silent><buffer> sv :call DiredEdit(g:DiredFiles, 2, expand('%:e'))<CR>
+
+	nnoremap <silent><buffer> yy :call DiredYankFile(g:DiredFiles, expand('%:e'), 0)<CR>
+	nnoremap <silent><buffer> y+ :call DiredYankFile(g:DiredFiles, expand('%:e'), 1)<CR>
+	nnoremap <silent><buffer> p :call DiredPasteFiles(g:DiredFiles, expand('%:e'), 0)<CR>
+	nnoremap <silent><buffer> P :call DiredPasteFiles(g:DiredFiles, expand('%:e'), 1)<CR>
+	nnoremap <silent><buffer> m :call DiredMoveFiles(g:DiredFiles, expand('%:e'), 0)<CR>
+	nnoremap <silent><buffer> M :call DiredMoveFiles(g:DiredFiles, expand('%:e'), 1)<CR>
 
 	" utility functions
 	nnoremap <silent><buffer> i :call DiredInfo(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> gi :call DiredGitInit(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
-	nnoremap <silent><buffer> O :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> <C-O> :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> R :call DiredRefresh(g:DiredFiles, expand('%:e'))<CR>
 
 	" changing attributes
@@ -231,6 +285,7 @@ endfunction
 
 let g:DiredLine = 1
 let g:DiredHistory = []
+let g:DiredYankBuf = []
 
 nnoremap <silent> <Backspace> :call DiredHistoryBack(g:DiredFiles, expand('%:e'))<CR>
 
