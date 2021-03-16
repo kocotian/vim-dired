@@ -228,6 +228,11 @@ function DiredHistoryBack(files, sid)
 	endif
 endfunction
 
+function DiredCdHome(files, sid)
+	chdir
+	silent call DiredMain(0, a:sid)
+endfunction
+
 " Main function
 
 function DiredMain(inNew, sid)
@@ -276,6 +281,7 @@ function DiredMain(inNew, sid)
 	nnoremap <silent><buffer> cd :call DiredInteractiveChdir(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> <C-O> :call DiredOpenWith(g:DiredFiles, expand('%:e'))<CR>
 	nnoremap <silent><buffer> R :call DiredRefresh(g:DiredFiles, expand('%:e'))<CR>
+	nnoremap <silent><buffer> ~ :call DiredCdHome(g:DiredFiles, expand('%:e'))<CR>
 
 	" changing attributes
 	nnoremap <silent><buffer> cp :call DiredChangePermissions(g:DiredFiles, expand('%:e'))<CR>
