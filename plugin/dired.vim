@@ -297,5 +297,5 @@ nnoremap <silent> <Backspace> :call DiredHistoryBack(g:DiredFiles, expand('%:e')
 
 autocmd BufRead,BufNewFile dired:///* set filetype=dired
 
-command DiredHere silent call DiredMain(0, localtime() % 100000)
-command Dired silent call DiredMain(1, localtime() % 100000)
+command! DiredHere silent call DiredMain(0, localtime() % 100000)
+command! Dired silent call DiredMain(1, localtime() % 100000)
